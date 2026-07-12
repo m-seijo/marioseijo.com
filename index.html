@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Mario Seijo — Web Strategist | Less noise. More clarity.</title>
+  <meta name="description" content="Mario Seijo, founder of Minimo Studio and a strategy-first web strategist. Save my contact card, or let's connect.">
+  <link rel="canonical" href="https://marioseijo.com/">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#FF6257">
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Mario Seijo">
+  <meta property="og:title" content="Mario Seijo — Less noise. More clarity.">
+  <meta property="og:description" content="Strategy-first web strategist. Founder of Minimo Studio. Save my contact, or let's connect.">
+  <meta property="og:url" content="https://marioseijo.com/">
+  <meta property="og:image" content="https://marioseijo.com/og/mario-seijo.jpg"><!-- 1200x630 render, produced post-launch -->
+  <meta property="og:image:alt" content="Mario Seijo's translucent glass business card">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mario Seijo — Less noise. More clarity.">
+  <meta name="twitter:description" content="Strategy-first web strategist. Founder of Minimo Studio.">
+  <meta name="twitter:image" content="https://marioseijo.com/og/mario-seijo.jpg">
+
+  <!-- Icons / manifest -->
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="32x32"><!-- emit favicon.ico -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"><!-- emit 180x180 PNG -->
+  <link rel="manifest" href="/site.webmanifest">
+
+  <!-- Preload only the two faces first paint needs: the h1 (display 700 = Bold,
+       the LCP element) and the body default (400). Everything else swaps in. -->
+  <link rel="preload" href="/fonts/ClashDisplay-Bold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/GeneralSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Structured data: who this is -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Mario Seijo",
+    "url": "https://marioseijo.com/",
+    "jobTitle": "Founder, Web Strategist",
+    "worksFor": { "@type": "Organization", "name": "Minimo Studio", "url": "https://minimostudio.io" },
+    "email": "hello@minimostudio.io",
+    "telephone": "+1-206-249-7584",
+    "image": "https://marioseijo.com/og/mario-seijo.jpg",
+    "description": "Strategy-first web strategist. 25 years in tech; now strips away the noise until a business — and its website — say one clear thing.",
+    "knowsAbout": ["Web strategy", "Brand clarity", "Website design", "WordPress", "Small business & nonprofit websites"],
+    "nationality": "Peruvian",
+    "homeLocation": { "@type": "Place", "name": "Seattle, WA, USA" },
+    "sameAs": [
+      "https://www.linkedin.com/in/marioseijo/",
+      "https://www.instagram.com/seijo.mario/"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  { "@context":"https://schema.org", "@type":"WebSite",
+    "name":"Mario Seijo", "url":"https://marioseijo.com/",
+    "inLanguage":"en", "about":"Mario Seijo — strategy-first web strategist, founder of Minimo Studio." }
+  </script>
+
+  <script type="module" src="/src/main.js"></script>
+</head>
+<body>
+  <a class="wordmark" href="/" aria-label="Mario Seijo — home"><span class="dot" aria-hidden="true"></span>Mario Seijo</a>
+  <a class="handoff" href="https://minimostudio.io" target="_blank" rel="noopener">Looking for a studio? <b>minimostudio.io</b> <span class="arw" aria-hidden="true">→</span></a>
+
+  <main>
+    <header class="lede">
+      <h1>Less noise.<br><span class="clarity">More clarity.</span></h1>
+      <p class="sub">the strategy-first minimalist</p>
+    </header>
+
+    <div class="cardwrap" id="cardwrap">
+      <div class="card" id="card" tabindex="0" role="group" aria-label="Interactive business card — drag to spin, scroll to deconstruct, flip for the QR code, or save the contact">
+        <!-- FRONT — real contact DOM, marked up as an h-card -->
+        <address class="face front h-card">
+          <span class="p-org visually-hidden">Minimo Studio</span>
+          <div class="glass"></div>
+          <svg class="wires" viewBox="0 0 860 500" preserveAspectRatio="none" aria-hidden="true">
+            <!-- Endpoints are positioned live by card.js (positionWires) to track
+                 the '@' and the LinkedIn icon at any card size. These d values are
+                 just a sensible pre-JS default for the 940px card. -->
+            <path d="M330 168 L330 330 L95 330 L95 393"/>
+            <path d="M405 168 L700 168 L700 409"/>
+          </svg>
+          <div class="pc mark"><i aria-hidden="true"></i></div>
+          <div class="pc idblock">
+            <b class="name p-name">Mario Seijo</b>
+            <span class="title p-job-title">Founder, Web Strategist</span>
+          </div>
+          <div class="pc channels">
+            <a class="ch u-email" href="mailto:hello@minimostudio.io"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span class="chtext">hello<span class="at">@</span>minimostudio.io</span></a>
+            <a class="ch p-tel" href="sms:+12062497584"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>(206) 249-7584</a>
+          </div>
+          <div class="pc socials">
+            <a class="soc u-url" href="https://www.linkedin.com/in/marioseijo/" target="_blank" rel="noopener me" title="LinkedIn" aria-label="LinkedIn">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zm1.78 13.02H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+            </a>
+            <a class="soc u-url" href="https://www.instagram.com/seijo.mario/" target="_blank" rel="noopener me" title="Instagram" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+            </a>
+            <a class="soc u-url" href="https://minimostudio.io/book-a-call/" target="_blank" rel="noopener" title="Fit Call — book a call" aria-label="Fit Call, book a call">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M9 14.5l2 2 4-4"/></svg>
+            </a>
+          </div>
+        </address>
+
+        <!-- BACK — take the card with you -->
+        <div class="face back">
+          <div class="glass"></div>
+          <div class="qrtile">
+            <img class="qr" src="/mario-qr.svg" width="200" height="200" alt="QR code — scan to save Mario Seijo's contact card">
+          </div>
+          <div class="qrside">
+            <b class="name">Scan to save me</b>
+            <p class="qrcap">Point your phone camera at the code — it adds Mario straight to your contacts.</p>
+            <a class="save" id="saveBack" href="/mario-seijo.vcf" download="mario-seijo.vcf" type="text/vcard">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Save my contact
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dock">
+      <p class="hint">Drag to spin · scroll to deconstruct · flip for the QR</p>
+      <div class="ctrls">
+        <button class="iconbtn" id="flip" type="button" title="Flip the card" aria-label="Flip the card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v4h-4"/></svg>
+        </button>
+        <button class="iconbtn" id="deconstruct" type="button" title="Deconstruct" aria-label="Deconstruct the card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
+        <button class="iconbtn" id="reassemble" type="button" title="Reassemble" aria-label="Reassemble the card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3m8 0v-3a2 2 0 0 1 2-2h3"/></svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="sitefooter">
+    <span>© 2009–<span data-year>2026</span> Mario Seijo</span>
+    <span class="sep" aria-hidden="true">·</span>
+    <a href="/privacy">Privacy</a>
+  </footer>
+
+  <button class="themebtn" id="theme" type="button" title="Toggle theme" aria-label="Toggle light/dark theme">◐</button>
+  <div class="toast" id="toast" role="status" aria-live="polite">Contact card downloaded (.vcf)</div>
+</body>
+</html>

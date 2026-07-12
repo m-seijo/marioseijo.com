@@ -1,0 +1,234 @@
+/* ---------------------------------------------------------------------------
+   card.css — the hero: headline, the glass business card, its faces and the
+   dock controls. The DOM remains the source of truth for text and links.
+   The CSS glass IS the material today; three.js layers refraction on top later
+   (see src/glass.js) — the DOM text always stays real DOM.
+   --------------------------------------------------------------------------- */
+
+body { overflow: hidden; } /* home page: the card owns the viewport */
+
+/* <main> must itself be a flex column, otherwise .cardwrap's `flex:1 1 auto`
+   has nothing to grow against: the card stops centering and the footer rides
+   up under the dock instead of resting on the bottom edge. */
+main {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column;
+}
+
+/* --- hero headline -------------------------------------------------------- */
+.lede {
+  position: relative; z-index: 4; text-align: center; flex: 0 0 auto;
+  padding: clamp(20px,4.5vh,52px) 24px 0; pointer-events: none;
+}
+h1 {
+  margin: 0 auto; font-family: var(--display); font-weight: 700; line-height: .95;
+  letter-spacing: 0; font-size: clamp(36px,6.2vw,84px); text-wrap: balance; max-width: 14ch;
+}
+h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
+.sub {
+  margin: 14px auto 0; font-size: clamp(15px,1.6vw,20px); color: var(--muted);
+  font-weight: 500; letter-spacing: -.01em;
+}
+
+/* --- card stage ----------------------------------------------------------- */
+.cardwrap {
+  position: relative; z-index: 2; flex: 1 1 auto; min-height: 0;
+  display: grid; place-items: center; perspective: 1600px;
+}
+.card {
+  position: relative; width: min(90vw, 62vh*1.72, 940px); aspect-ratio: 1.72/1;
+  transform-style: preserve-3d; will-change: transform; touch-action: none; cursor: grab;
+  /* Non-selectable: without this a drag selects the card's text, and the NEXT
+     drag lands on that selection and starts a native drag-of-selection, which
+     fires pointercancel and locks the spin (works once, then dead). */
+  user-select: none; -webkit-user-select: none;
+}
+.card.dragging { cursor: grabbing; }
+/* No intro tumble (per feedback): the card materialises softly at its settled,
+   square pose with a plain opacity fade — no movement — then the JS wobble gives
+   it life. */
+.card { animation: cardappear .5s ease both; }
+@keyframes cardappear { from { opacity: 0; } to { opacity: 1; } }
+.card:focus-visible { outline: none; }
+.card:focus-visible .face.front .glass { outline: 2.5px solid var(--accent); outline-offset: 8px; }
+
+/* faces — overflow visible so deconstruct can fly OUTSIDE the card */
+.face {
+  position: absolute; inset: 0; font-style: normal;
+  /* backface-visibility is intentionally VISIBLE: card.js drives which face
+     shows via the .showback class (see .face.back rules below). Chrome's own
+     backface culling misfires here now that the pieces aren't layer-promoted,
+     hiding the back face's content — so we don't rely on it. */
+  backface-visibility: visible; -webkit-backface-visibility: visible;
+  border-radius: 34px; padding: clamp(20px,3.4vw,40px);
+}
+.face.back {
+  transform: rotateY(180deg); display: grid; grid-template-columns: auto 1fr;
+  gap: clamp(16px,3vw,34px); align-items: center; align-content: center;
+}
+/* Only the face toward the viewer is shown/hittable. card.js toggles .showback
+   at the 90° edge-on point (this replaces CSS backface culling — see apply()).
+   visibility (not display) so layout is stable and it flips cleanly edge-on. */
+.card:not(.showback) .face.back { visibility: hidden; }
+.card.showback .face.front { visibility: hidden; }
+.glass {
+  position: absolute; inset: 0; border-radius: 34px; z-index: 0;
+  background: linear-gradient(135deg, var(--glass), var(--glass-2));
+  backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1.5px solid var(--edge);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.5) inset, 0 0 0 1px rgba(255,255,255,.05) inset,
+    0 44px 90px -26px var(--depth), 0 0 80px -10px var(--warmglow);
+}
+.glass::after {
+  content: ""; position: absolute; inset: 0; border-radius: 34px; padding: 1.5px;
+  background: linear-gradient(120deg, transparent 18%, var(--accent) 50%, transparent 82%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; opacity: .5; pointer-events: none;
+}
+
+/* --- WebGL glass takeover -------------------------------------------------
+   src/glass.js sets `.webgl-glass` on <html> once the three.js pipeline is
+   live. The refraction becomes the material; the DOM keeps only a faint scrim
+   for legibility (north star: the wow IS the clarity) plus the framing edge and
+   the grounding shadow. If WebGL never engages, none of this applies and the
+   full CSS glass above stands on its own. */
+.webgl-glass .card { z-index: 1; } /* sit above the transparent WebGL canvas */
+.webgl-glass .glass {
+  background: linear-gradient(135deg, var(--gl-scrim), var(--gl-scrim-2));
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.webgl-glass .glass::after { opacity: .28; } /* WebGL owns the edge glow now */
+
+/* glowing connector wires — kept to the RIGHT/empty zone, never over the text */
+.wires { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: visible; }
+.wires path {
+  fill: none; stroke: var(--wire); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+  transition: stroke .35s, filter .35s;
+}
+.wires circle { fill: var(--accent); opacity: .45; transition: opacity .35s, filter .35s; }
+.card:hover .wires path {
+  stroke: var(--accent); filter: drop-shadow(0 0 5px var(--warmglow));
+  stroke-dasharray: 6 5; animation: flow 1.1s linear infinite;
+}
+.card:hover .wires circle { opacity: 1; filter: drop-shadow(0 0 6px var(--accent)); }
+@keyframes flow { to { stroke-dashoffset: -22; } }
+
+/* deconstruct pieces */
+/* NO permanent `will-change: transform` here: promoting each .pc to its own
+   compositing layer breaks pointer hit-testing inside the 3D-rotated card —
+   Chrome tests the promoted layers in a displaced space, so clicks/hover on the
+   connect icons fall through to .glass. card.js adds will-change only while the
+   deconstruct animation runs, then clears it so the resting card stays clickable. */
+.pc { position: relative; z-index: 2; transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+
+.mark { position: absolute; left: clamp(20px,3.4vw,40px); top: clamp(20px,3.4vw,40px); }
+.mark i { width: 15px; height: 15px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 18px var(--warmglow); display: block; }
+
+.idblock { position: absolute; left: clamp(20px,3.4vw,40px); top: clamp(48px,7vw,84px); }
+.name {
+  font-family: var(--display); font-size: clamp(24px,4.4vw,44px); font-weight: 700;
+  letter-spacing: 0; color: var(--face); display: block; white-space: nowrap;
+}
+.title {
+  font-size: clamp(11px,1.4vw,15px); letter-spacing: .16em; text-transform: uppercase;
+  color: var(--face); opacity: .72; font-weight: 600; display: block; margin-top: 6px;
+}
+
+.channels {
+  position: absolute; left: clamp(20px,3.4vw,40px); bottom: clamp(20px,3.2vw,36px);
+  display: flex; flex-direction: column; gap: 9px;
+}
+.ch {
+  display: inline-flex; align-items: center; gap: 9px; text-decoration: none; color: var(--face); opacity: .82;
+  font-size: clamp(12px,1.4vw,15px); font-weight: 500; letter-spacing: -.005em; width: max-content;
+  transition: opacity .2s, color .2s;
+}
+/* Email/SMS hover: the true accent #FF6257 in dark mode; the darker --accent-ink
+   in light mode so this small text keeps AA contrast on the light card. */
+.ch:hover { opacity: 1; color: var(--accent); }
+:root[data-theme="light"] .ch:hover { color: var(--accent-ink); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .ch:hover { color: var(--accent-ink); }
+}
+.ch svg { width: 15px; height: 15px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.7; opacity: .85; }
+
+/* connect hub — icon buttons, bottom-right to balance the composition */
+.socials { position: absolute; right: clamp(20px,3.4vw,40px); bottom: clamp(20px,3.2vw,36px); display: flex; gap: 10px; }
+.soc {
+  /* border matches the icon colour (var(--face)) at reduced alpha, so the tile
+     reads as a defined button instead of the near-invisible hairline. */
+  width: 46px; height: 34px; border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--face) 42%, transparent);
+  background: rgba(255,255,255,.12);
+  display: inline-flex; align-items: center; justify-content: center; color: var(--face); text-decoration: none;
+  transition: background .2s, color .2s, border-color .2s, box-shadow .2s;
+}
+/* NO transform on hover: a transform re-promotes the tile to a compositing layer
+   inside the 3D card, which breaks its own hit-testing (the hover moves the hit
+   region off the cursor → flicker). A box-shadow gives the "pop" with no layer. */
+.soc:hover { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 5px 16px -5px var(--accent); }
+.soc svg { width: 19px; height: 19px; }
+.ch:focus-visible, .soc:focus-visible, .save:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
+
+/* save — back only */
+.save {
+  text-decoration: none; font: inherit; font-size: clamp(12.5px,1.4vw,15px); font-weight: 600;
+  letter-spacing: -.01em; color: #fff; background: var(--accent); border: none; padding: 12px 20px;
+  border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 9px;
+  box-shadow: 0 12px 30px -10px var(--warmglow); transition: box-shadow .2s, filter .2s;
+}
+/* box-shadow, not transform — same 3D-card hit-testing reason as .soc above. */
+.save:hover { filter: brightness(1.06); box-shadow: 0 16px 36px -10px var(--warmglow); }
+.save svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 1.9; }
+
+/* QR — always a light tile so it scans, even in dark theme */
+.qrtile {
+  position: relative; z-index: 2; background: #FFF8F0; border-radius: 18px; padding: 14px;
+  box-shadow: 0 12px 30px -12px var(--depth); width: clamp(130px,21vw,200px);
+}
+.qrtile img { display: block; width: 100%; height: auto; }
+.qrside { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.qrside .name { white-space: nowrap; }
+.qrcap { margin: 0; font-size: clamp(13px,1.5vw,16px); color: var(--face); opacity: .8; font-weight: 500; max-width: 22ch; line-height: 1.4; }
+
+/* --- dock ----------------------------------------------------------------- */
+/* the footer sits below the dock, so the dock gives up the prototype's bottom gap.
+   The dock's full-width band (z-index 6) overlaps the card's lower area, so it
+   must be click-through — otherwise it eats clicks/hover on the connect icons.
+   Only the actual controls take pointer events back. */
+.dock {
+  position: relative; z-index: 6; flex: 0 0 auto; display: flex; flex-direction: column;
+  align-items: center; gap: 12px; padding: 0 24px clamp(12px,2.2vh,22px);
+  pointer-events: none;
+}
+.hint {
+  font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+  opacity: .7; text-align: center; pointer-events: none;
+}
+.ctrls { display: flex; gap: 10px; align-items: center; pointer-events: auto; }
+.iconbtn {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--hair); background: var(--ground);
+  cursor: pointer; color: var(--muted); display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color .2s, color .2s, transform .1s;
+}
+.iconbtn:hover { border-color: var(--accent); color: var(--accent-ink); }
+.iconbtn:active { transform: translateY(1px); }
+.iconbtn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
+.iconbtn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* --- reduced motion ------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
+  .card:hover .wires path { animation: none; }
+}
+
+/* --- mobile --------------------------------------------------------------- */
+@media (max-width: 640px) {
+  body { overflow: auto; }
+  .cardwrap { min-height: 54vh; perspective: 1100px; }
+  .card { width: 92vw; }
+  h1 { font-size: clamp(32px,10vw,52px); }
+  .name { white-space: normal; }
+  .handoff { position: static; display: flex; justify-content: center; margin: 8px auto 0; }
+}

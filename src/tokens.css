@@ -1,0 +1,183 @@
+/* ---------------------------------------------------------------------------
+   tokens.css — brand tokens, self-hosted fonts, base + global chrome.
+   Brand tokens. Never hard-code a hex in a component; go
+   through a token so both themes (and the toggle) stay correct.
+   --------------------------------------------------------------------------- */
+
+/* --- self-hosted fonts (no CDN) -------------------------------------------
+   Drop the .woff2 files into public/fonts/ (see public/fonts/README.md).
+   Until then the fallback stack renders and the layout still holds. */
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --display: 'Clash Display', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --body: 'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+
+  /* light — "warm concept car" */
+  --ground: #FFF8F0; --ink: #272A33; --muted: #5A5D66; --accent: #FF6257; --accent-ink: #B8382F;
+  --surface: #FFFFFF;
+  --glass: rgba(255,255,255,.52); --glass-2: rgba(255,255,255,.14); --edge: rgba(255,98,87,.55);
+  --hair: rgba(39,42,51,.12); --warmglow: rgba(255,98,87,.16); --depth: rgba(39,42,51,.16);
+  --face: #272A33; --wire: rgba(255,98,87,.3);
+  /* faint scrim behind the card text when the WebGL glass is the material */
+  --gl-scrim: rgba(255,248,240,.16); --gl-scrim-2: rgba(255,248,240,.05);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #16171C; --ink: #F3EDE4; --muted: #A29C93; --accent: #FF6257; --accent-ink: #FF8B82;
+    --surface: #1E2027;
+    --glass: rgba(255,255,255,.06); --glass-2: rgba(255,255,255,.02); --edge: rgba(255,98,87,.7);
+    --hair: rgba(243,237,228,.12); --warmglow: rgba(255,98,87,.22); --depth: rgba(0,0,0,.5);
+    --face: #F3EDE4; --wire: rgba(255,98,87,.4);
+    --gl-scrim: rgba(255,255,255,.05); --gl-scrim-2: rgba(255,255,255,.015);
+    color-scheme: dark;
+  }
+}
+/* explicit toggle wins in both directions */
+:root[data-theme="light"] {
+  --ground: #FFF8F0; --ink: #272A33; --muted: #5A5D66; --accent: #FF6257; --accent-ink: #B8382F;
+  --surface: #FFFFFF;
+  --glass: rgba(255,255,255,.52); --glass-2: rgba(255,255,255,.14); --edge: rgba(255,98,87,.55);
+  --hair: rgba(39,42,51,.12); --warmglow: rgba(255,98,87,.16); --depth: rgba(39,42,51,.16);
+  --face: #272A33; --wire: rgba(255,98,87,.3);
+  --gl-scrim: rgba(255,248,240,.16); --gl-scrim-2: rgba(255,248,240,.05);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --ground: #16171C; --ink: #F3EDE4; --muted: #A29C93; --accent: #FF6257; --accent-ink: #FF8B82;
+  --surface: #1E2027;
+  --glass: rgba(255,255,255,.06); --glass-2: rgba(255,255,255,.02); --edge: rgba(255,98,87,.7);
+  --hair: rgba(243,237,228,.12); --warmglow: rgba(255,98,87,.22); --depth: rgba(0,0,0,.5);
+  --face: #F3EDE4; --wire: rgba(255,98,87,.4);
+  --gl-scrim: rgba(255,255,255,.05); --gl-scrim-2: rgba(255,255,255,.015);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+/* the ambient warm glow behind everything */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(58% 55% at 50% 56%, var(--warmglow), transparent 70%),
+    radial-gradient(45% 45% at 12% 92%, rgba(255,98,87,.05), transparent 70%);
+}
+
+a { color: inherit; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* --- top-left wordmark ---------------------------------------------------- */
+/* Mirrors .handoff across the top of the viewport: identity left, handoff right. */
+/* Same treatment as the card name (.name): Clash Display 700, tracking 0 —
+   the wordmark IS the name in the display face. Sized to read as a logo
+   without competing with the card. */
+.wordmark {
+  position: fixed; left: clamp(18px,5vw,60px); top: clamp(18px,4vh,36px); z-index: 6;
+  display: inline-flex; align-items: center; gap: 11px;
+  font-family: var(--display); font-size: clamp(18px,1.7vw,24px); font-weight: 700; letter-spacing: 0;
+  color: var(--ink); text-decoration: none;
+  transition: color .2s;
+}
+.wordmark .dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 16px var(--warmglow); flex: none;
+}
+.wordmark:hover { color: var(--accent-ink); }
+.wordmark:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+
+/* --- top-right studio handoff -------------------------------------------- */
+.handoff {
+  position: fixed; right: clamp(18px,5vw,60px); top: clamp(18px,4vh,36px); z-index: 6;
+  font-size: 13px; color: var(--muted); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.handoff b { color: var(--ink); font-weight: 600; }
+.handoff:hover b { color: var(--accent-ink); }
+.handoff .arw { color: var(--accent); transition: transform .2s; }
+.handoff:hover .arw { transform: translateX(3px); }
+
+/* --- bottom-right theme toggle ------------------------------------------- */
+.themebtn {
+  position: fixed; right: clamp(18px,5vw,60px); bottom: clamp(18px,4vh,36px); z-index: 6;
+  width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--hair);
+  background: var(--ground); cursor: pointer; color: var(--muted); font-size: 15px;
+}
+.themebtn:hover { border-color: var(--accent); color: var(--accent-ink); }
+.themebtn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
+
+/* --- quiet footer --------------------------------------------------------- */
+.sitefooter {
+  position: relative; z-index: 6; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+  padding: 0 24px clamp(14px,3vh,28px);
+  font-size: 13px; color: var(--muted);
+}
+.sitefooter .sep { opacity: .5; }
+.sitefooter a { color: var(--muted); text-decoration: none; }
+.sitefooter a:hover { color: var(--accent-ink); }
+.sitefooter a:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+
+/* --- toast ---------------------------------------------------------------- */
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translate(-50%,20px); z-index: 20;
+  opacity: 0; pointer-events: none;
+  background: var(--ink); color: var(--ground); font-size: 13.5px; font-weight: 600;
+  padding: 11px 20px; border-radius: 999px; box-shadow: 0 16px 40px -12px rgba(0,0,0,.4);
+  transition: opacity .3s, transform .3s;
+}
+.toast.show { opacity: 1; transform: translate(-50%,0); }
+
+/* --- mobile: the fixed chrome joins the flow so it can't cover content ----- */
+@media (max-width: 640px) {
+  .wordmark { position: static; justify-content: center; margin: 14px auto 0; }
+}

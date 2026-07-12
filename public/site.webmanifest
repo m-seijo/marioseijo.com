@@ -1,0 +1,13 @@
+{
+  "name": "Mario Seijo",
+  "short_name": "Mario Seijo",
+  "description": "Mario Seijo — strategy-first web strategist, founder of Minimo Studio.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#FF6257",
+  "background_color": "#FFF8F0",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/apple-touch-icon.png", "type": "image/png", "sizes": "180x180" }
+  ]
+}

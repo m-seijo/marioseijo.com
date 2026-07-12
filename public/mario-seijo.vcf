@@ -1,0 +1,16 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Seijo;Mario;;;
+FN:Mario Seijo
+ORG:Minimo Studio
+TITLE:Founder, Web Strategist
+EMAIL;TYPE=INTERNET:hello@minimostudio.io
+TEL;TYPE=CELL,VOICE:+12062497584
+URL:https://marioseijo.com
+item1.URL:https://www.linkedin.com/in/marioseijo/
+item1.X-ABLabel:LinkedIn
+item2.URL:https://www.instagram.com/seijo.mario/
+item2.X-ABLabel:Instagram
+item3.URL:https://minimostudio.io/book-a-call/
+item3.X-ABLabel:Fit Call
+END:VCARD
