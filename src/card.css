@@ -204,7 +204,7 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
 }
 .hint {
   font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
-  opacity: .7; text-align: center; pointer-events: none;
+  text-align: center; pointer-events: none;
 }
 .ctrls { display: flex; gap: 10px; align-items: center; pointer-events: auto; }
 .iconbtn {
