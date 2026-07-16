@@ -6,6 +6,8 @@ import './card.css';
 import { initChrome } from './chrome.js';
 import { initCard } from './card.js';
 
+window.__MARIO_SEIJO_BUILD_ID = '2026-07-15-qa-contrast';
+
 initChrome();
 initCard();
 

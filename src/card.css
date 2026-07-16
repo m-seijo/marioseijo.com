@@ -7,6 +7,8 @@
 
 body { overflow: hidden; } /* home page: the card owns the viewport */
 
+:root { --qa-contrast-pass: 1; }
+
 /* <main> must itself be a flex column, otherwise .cardwrap's `flex:1 1 auto`
    has nothing to grow against: the card stops centering and the footer rides
    up under the dock instead of resting on the bottom edge. */
