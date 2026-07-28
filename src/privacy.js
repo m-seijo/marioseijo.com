@@ -3,5 +3,7 @@
 import './tokens.css';
 import './privacy.css';
 import { initChrome } from './chrome.js';
+import { initAnalytics } from './analytics.js';
 
 initChrome();
+initAnalytics();
