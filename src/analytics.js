@@ -59,11 +59,6 @@ function bindInteractionEvents() {
       track('contact_download', { method: 'vcard' });
       return;
     }
-    if (target.id === 'flip') {
-      track('card_flip');
-      return;
-    }
-
     const href = target.getAttribute('href') || '';
     if (href.startsWith('mailto:')) track('contact_click', { method: 'email' });
     else if (href.startsWith('sms:') || href.startsWith('tel:')) {

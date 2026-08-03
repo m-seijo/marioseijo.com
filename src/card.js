@@ -1,5 +1,5 @@
 // card.js — all card behaviour: intro tumble, idle wobble, cursor tilt,
-// drag-to-spin, flip, scroll/keyboard deconstruct, and the save-contact toast.
+// drag-to-spin, flip, scroll deconstruct, and the save-contact toast.
 // The DOM stays the source of truth; three.js (glass.js) only enhances the
 // material later.
 //
@@ -108,9 +108,8 @@ export function initCard() {
     if (reduce) { rotY = base() + restY; rotX = restX; introDone = true; apply(); }
     // (with motion, the rAF loop eases toward the flipped pose)
   }
-  document.getElementById('flip')?.addEventListener('click', doFlip);
 
-  // ---- deconstruct: pieces fly OUTSIDE the card; buttons AND scroll wheel ----
+  // ---- deconstruct: pieces fly OUTSIDE the card; driven by the scroll wheel ---
   const pcs = Array.from(document.querySelectorAll('.face.front .pc'));
   // mark, idblock, channels(bottom-left), socials(bottom-right)
   const burst = [[-160,-130,150], [60,-190,250], [-110,180,180], [210,150,220]];
@@ -131,8 +130,6 @@ export function initCard() {
     renderPieces(stagger);
     if (stagger) setTimeout(() => pcs.forEach((el) => { el.style.transitionDelay = '0s'; }), 600);
   }
-  document.getElementById('deconstruct')?.addEventListener('click', () => setExplode(1, true));
-  document.getElementById('reassemble')?.addEventListener('click', () => setExplode(0, true));
   wrap.addEventListener('wheel', (e) => {
     e.preventDefault();
     setExplode(explodeF + e.deltaY * 0.0016, false);
