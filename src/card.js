@@ -328,13 +328,15 @@ export function initCard() {
       wirePaths[0].setAttribute('d',
         `M${fx(L_OUT)} ${startY} L${fx(L_OUT)} ${elbowY} L${fx(L_IN)} ${elbowY} L${fx(L_IN)} ${vy(top + band * 0.78)}`);
 
-      // Right: runs the full height of the band and turns in to point at the
-      // LAST connect icon — "book a call", the primary action.
+      // Right: exactly two segments, per the mockup — a long vertical down the
+      // right side, then a short horizontal tick in toward the LAST connect icon
+      // ("book a call", the primary action). The tick is level with the icon and
+      // stops short of it, so it points rather than connects.
       const book = offsetIn(bookEl, face);
-      const bookX = vx(book.x + bookEl.offsetWidth / 2);
-      const turnY = vy(book.y - 34);
+      const bookMidY = vy(book.y + bookEl.offsetHeight / 2);
+      const tickEnd = vx(book.x + bookEl.offsetWidth + gap);
       wirePaths[1].setAttribute('d',
-        `M${fx(R_OUT)} ${startY} L${fx(R_OUT)} ${turnY} L${bookX} ${turnY} L${bookX} ${vy(book.y - gap * 0.4)}`);
+        `M${fx(R_OUT)} ${startY} L${fx(R_OUT)} ${bookMidY} L${tickEnd} ${bookMidY}`);
       return;
     }
 
