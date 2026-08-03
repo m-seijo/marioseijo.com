@@ -285,7 +285,9 @@ export function initCard() {
   const face = card.querySelector('.face.front');
   const wirePaths = card.querySelectorAll('.face.front .wires path');
   const atEl = card.querySelector('.ch.u-email .at');
-  const liEl = card.querySelector('.socials .soc'); // first social = LinkedIn
+  const socEls = card.querySelectorAll('.socials .soc');
+  const liEl = socEls[0];                     // first social = LinkedIn
+  const bookEl = socEls[socEls.length - 1];   // last social = Fit Call / book a call
   const idEl = card.querySelector('.idblock');
   function offsetIn(el, ancestor) {
     let x = 0, y = 0, n = el;
@@ -293,7 +295,7 @@ export function initCard() {
     return { x, y };
   }
   function positionWires() {
-    if (!face || wirePaths.length < 2 || !atEl || !liEl || !idEl) return;
+    if (!face || wirePaths.length < 2 || !atEl || !liEl || !bookEl || !idEl) return;
     const W = face.offsetWidth, H = face.offsetHeight;
     if (!W || !H) return;
     const gap = 30; // px the trace stops short of its target
@@ -318,15 +320,21 @@ export function initCard() {
       // literal pointers — the landscape card below keeps the pointing version.
       const bandBottom = Math.min(at.y, li.y);
       const band = bandBottom - top;
-      const elbowY = vy(top + band * 0.53);
-      const endY = vy(top + band * 0.78);
-      // Outer start, inner finish — as fractions of the face width.
-      const L_OUT = 0.15, L_IN = 0.235, R_OUT = 0.815, R_IN = 0.58;
       const fx = (f) => vx(W * f);
+      // Left: the short bracket from the mockup — outer start, inward step,
+      // stopping inside the band.
+      const L_OUT = 0.15, L_IN = 0.235, R_OUT = 0.815;
+      const elbowY = vy(top + band * 0.53);
       wirePaths[0].setAttribute('d',
-        `M${fx(L_OUT)} ${startY} L${fx(L_OUT)} ${elbowY} L${fx(L_IN)} ${elbowY} L${fx(L_IN)} ${endY}`);
+        `M${fx(L_OUT)} ${startY} L${fx(L_OUT)} ${elbowY} L${fx(L_IN)} ${elbowY} L${fx(L_IN)} ${vy(top + band * 0.78)}`);
+
+      // Right: runs the full height of the band and turns in to point at the
+      // LAST connect icon — "book a call", the primary action.
+      const book = offsetIn(bookEl, face);
+      const bookX = vx(book.x + bookEl.offsetWidth / 2);
+      const turnY = vy(book.y - 34);
       wirePaths[1].setAttribute('d',
-        `M${fx(R_OUT)} ${startY} L${fx(R_OUT)} ${elbowY} L${fx(R_IN)} ${elbowY} L${fx(R_IN)} ${endY}`);
+        `M${fx(R_OUT)} ${startY} L${fx(R_OUT)} ${turnY} L${bookX} ${turnY} L${bookX} ${vy(book.y - gap * 0.4)}`);
       return;
     }
 

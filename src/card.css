@@ -130,6 +130,17 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
 .card.exploded .wires circle { opacity: 1; filter: drop-shadow(0 0 6px var(--accent)); }
 /* Slightly stronger while deconstructed — this is the "wow" moment. */
 .card.exploded .wires path { stroke-width: 1.7; filter: drop-shadow(0 0 8px var(--accent)); }
+
+/* Touch devices have neither trigger: :hover never fires, and the deconstruct
+   is desktop-only now that the touch control flips instead. Leave the traces
+   lit there permanently rather than permanently dim. */
+@media (hover: none) and (pointer: coarse) {
+  .wires path {
+    stroke: var(--accent); filter: drop-shadow(0 0 5px var(--warmglow));
+    stroke-dasharray: 6 5; animation: flow 1.1s linear infinite;
+  }
+  .wires circle { opacity: 1; filter: drop-shadow(0 0 6px var(--accent)); }
+}
 @keyframes flow { to { stroke-dashoffset: -22; } }
 
 /* deconstruct pieces */
@@ -260,7 +271,8 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
 /* --- reduced motion ------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   .card { animation: none; }
-  .card:hover .wires path { animation: none; }
+  /* Covers every trigger — hover, deconstruct, and the always-lit touch case. */
+  .wires path { animation: none; }
 }
 
 /* --- mobile --------------------------------------------------------------- */
