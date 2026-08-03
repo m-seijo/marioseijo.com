@@ -225,32 +225,37 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
    pointer events back. .themebtn is position:fixed on desktop and only joins
    this row on mobile. */
 .dock .themebtn { pointer-events: auto; }
-/* Touch-only deconstruct toggle. Desktop keeps the scroll wheel and shows
-   nothing; `hover:none and pointer:coarse` is the honest test for "no wheel,
-   no hover" rather than guessing from viewport width. */
-.explodebtn { display: none; }
+/* Touch-only flip toggle. Desktop shows nothing here — drag-to-spin and
+   Enter/Space already reach the back; `hover:none and pointer:coarse` is the
+   honest test for "no hover, no keyboard" rather than guessing from viewport
+   width. */
+.flipbtn { display: none; }
 @media (hover: none) and (pointer: coarse) {
-  .explodebtn {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px; /* 44px = the iOS/Android minimum touch target */
-    border-radius: 50%; border: 1px solid var(--hair); background: var(--ground);
-    color: var(--muted); cursor: pointer; pointer-events: auto;
-    transition: border-color .2s, color .2s, transform .1s;
-  }
+  .flipbtn { display: inline-flex; }
 }
-/* Sits above the footer's stacking level so it can never be buried by it. */
-.explodebtn { position: relative; z-index: 7; }
-.explodebtn:active { transform: translateY(1px); }
-.explodebtn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
-.explodebtn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-ink); }
-.explodebtn svg {
-  width: 19px; height: 19px; stroke: currentColor; fill: none;
+/* Shared sizing for both dock controls, so the pair can't drift apart.
+   44px = the iOS/Android minimum touch target. Deliberately sets no `position`:
+   .themebtn is fixed to the corner on desktop and only joins this row on mobile
+   (see the mobile block), and overriding that here would drag it into the dock
+   at every width. */
+.dockbtn {
+  align-items: center; justify-content: center; padding: 0;
+  border-radius: 50%; border: 1px solid var(--hair); background: var(--ground);
+  color: var(--muted); cursor: pointer; pointer-events: auto;
+  transition: border-color .2s, color .2s, transform .1s;
+}
+/* Above the footer's stacking level so it can never be buried by it. The flip
+   control only ever renders on touch, so it carries the touch size everywhere;
+   .themebtn picks up the matching size in the mobile block, where the two sit
+   side by side. Desktop keeps its smaller 38px corner button untouched. */
+.flipbtn { position: relative; z-index: 7; width: 44px; height: 44px; }
+.dockbtn:active { transform: translateY(1px); }
+.dockbtn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
+.dockbtn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-ink); }
+.dockbtn svg {
+  width: 21px; height: 21px; stroke: currentColor; fill: none;
   stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
 }
-/* Show the icon for the action the button will perform next. */
-.explodebtn .i-in,
-.explodebtn[aria-pressed="true"] .i-out { display: none; }
-.explodebtn[aria-pressed="true"] .i-in { display: block; }
 
 /* --- reduced motion ------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
@@ -309,9 +314,17 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
   .qrside .name { white-space: nowrap; }
   .qrcap { max-width: 30ch; }
 
-  /* The two controls sit together under the card (theme leaves its fixed
-     bottom-right corner and joins the row). */
-  .themebtn { position: static; width: 44px; height: 44px; font-size: 17px; }
+  /* The two controls sit together under the card: the theme button leaves its
+     fixed bottom-right corner and joins the row. `inset:auto` is required —
+     without it the corner's right/bottom offsets survive and shift the button
+     out of the row. .dockbtn sizes both, so the pair always matches. It draws a
+     glyph rather than an SVG, hence its own font-size to read as visually equal
+     to the flip icon beside it. */
+  .themebtn {
+    position: relative; inset: auto; z-index: 7;
+    display: inline-flex; width: 44px; height: 44px;
+    font-size: 25px; line-height: 1;
+  }
 
   /* Studio handoff moves below the card, above the footer — see tokens.css for
      the flex `order` that reseats it, since it's a sibling of <main>. */

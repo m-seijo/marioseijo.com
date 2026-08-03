@@ -35,7 +35,19 @@ export function initCard() {
     // card.css .pc), and without that promotion Chrome's per-child backface
     // culling/depth-sorting is unreliable — the front would show through mirrored.
     const yn = ((rotY % 360) + 360) % 360;
-    card.classList.toggle('showback', yn > 90 && yn < 270);
+    const back = yn > 90 && yn < 270;
+    card.classList.toggle('showback', back);
+    // Keep the flip control in step with the face actually facing the viewer, so
+    // it stays honest when the card is flipped by dragging rather than tapping.
+    if (back !== shownBack) { shownBack = back; syncFlipBtn(); }
+  }
+
+  const flipBtn = document.getElementById('flipToggle');
+  let shownBack = false;
+  function syncFlipBtn() {
+    if (!flipBtn) return;
+    flipBtn.setAttribute('aria-pressed', String(shownBack));
+    flipBtn.setAttribute('aria-label', shownBack ? 'Flip back to the contact details' : 'Flip to the QR code');
   }
 
   // No intro tumble: the card starts settled and simply wobbles (per feedback).
@@ -108,6 +120,9 @@ export function initCard() {
     if (reduce) { rotY = base() + restY; rotX = restX; introDone = true; apply(); }
     // (with motion, the rAF loop eases toward the flipped pose)
   }
+  // Touch-only control (hidden on pointer devices via CSS): the deliberate way
+  // to reach the QR back on a phone, where there's no hover and no keyboard.
+  flipBtn?.addEventListener('click', doFlip);
 
   // ---- deconstruct: pieces fly OUTSIDE the card; driven by the scroll wheel ---
   const pcs = Array.from(document.querySelectorAll('.face.front .pc'));
@@ -246,28 +261,15 @@ export function initCard() {
       el.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
     });
   }
-  // Touch-only toggle (hidden on pointer devices via CSS). It's the single
-  // deconstruct/reassemble control on phones, where `wheel` never fires.
-  const explodeBtn = document.getElementById('explodeToggle');
-  function syncExplodeBtn() {
-    if (!explodeBtn) return;
-    const open = explodeF > 0.02;
-    explodeBtn.setAttribute('aria-pressed', String(open));
-    explodeBtn.setAttribute('aria-label', open ? 'Reassemble the card' : 'Deconstruct the card');
-  }
-
   function setExplode(f, stagger) {
     explodeF = Math.max(0, Math.min(1, f));
     if (flipped && explodeF > 0.02) { flipped = false; rotY = base() + restY; rotX = restX; apply(); }
     renderPieces(stagger);
-    // Drives the wire glow (see .card.exploded in card.css) — :hover can't do
-    // this on touch, which is where the deconstruct now lives.
+    // Drives the wire glow — see .card.exploded in card.css.
     card.classList.toggle('exploded', explodeF > 0.02);
-    syncExplodeBtn();
     if (stagger) setTimeout(() => pcs.forEach((el) => { el.style.transitionDelay = '0s'; }), 600);
   }
 
-  explodeBtn?.addEventListener('click', () => setExplode(explodeF > 0.02 ? 0 : 1, true));
   wrap.addEventListener('wheel', (e) => {
     e.preventDefault();
     setExplode(explodeF + e.deltaY * 0.0016, false);
