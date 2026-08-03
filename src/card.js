@@ -145,7 +145,7 @@ export function initCard() {
 
   function measureFit() {
     if (!pcs.length) return;
-    const saved = pcs.map((el) => [el.style.transition, el.style.transform]);
+    const savedTransition = pcs.map((el) => el.style.transition);
     pcs.forEach((el) => { el.style.transition = 'none'; });
 
     applyBurst(pcs.map(() => ({ x: 0, y: 0 }))); const rest = rects();
@@ -204,8 +204,13 @@ export function initCard() {
       if (!changed) break;
     }
 
-    pcs.forEach((el, i) => { [el.style.transition, el.style.transform] = saved[i]; });
+    // Order matters: put the pieces back at rest while transitions are STILL
+    // off, flush that, and only then restore the transition. Restoring it first
+    // makes the browser tween from the measured full-burst pose back to rest —
+    // a 0.45s phantom reassemble a moment after load.
     renderPieces(false);
+    void pcs[0].offsetHeight; // flush the rest pose before transitions come back
+    pcs.forEach((el, i) => { el.style.transition = savedTransition[i]; });
   }
 
   function renderPieces(stagger) {
@@ -258,13 +263,14 @@ export function initCard() {
   const wirePaths = card.querySelectorAll('.face.front .wires path');
   const atEl = card.querySelector('.ch.u-email .at');
   const liEl = card.querySelector('.socials .soc'); // first social = LinkedIn
+  const idEl = card.querySelector('.idblock');
   function offsetIn(el, ancestor) {
     let x = 0, y = 0, n = el;
     while (n && n !== ancestor) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
     return { x, y };
   }
   function positionWires() {
-    if (!face || wirePaths.length < 2 || !atEl || !liEl) return;
+    if (!face || wirePaths.length < 2 || !atEl || !liEl || !idEl) return;
     const W = face.offsetWidth, H = face.offsetHeight;
     if (!W || !H) return;
     const gap = 30; // px the trace stops short of its target
@@ -272,12 +278,22 @@ export function initCard() {
     const vy = (px) => +(px / H * 500).toFixed(1);
     const at = offsetIn(atEl, face);
     const li = offsetIn(liEl, face);
+    const id = offsetIn(idEl, face);
     const atX = vx(at.x + atEl.offsetWidth / 2);
     const liX = vx(li.x + liEl.offsetWidth / 2);
+    // Both traces leave the id block. These used to be hardcoded viewBox
+    // coordinates, which only lined up on the landscape card — on the portrait
+    // mobile card they floated loose in the middle of the face. Derive them from
+    // the id block's real box so they stay anchored at any aspect ratio.
+    const startY = vy(id.y + idEl.offsetHeight + 22);
+    const leftX = vx(id.x + idEl.offsetWidth * 0.62);
+    const rightX = vx(id.x + idEl.offsetWidth + 18);
+    // Elbow height for the left trace: midway between the id block and the '@'.
+    const midY = vy((id.y + idEl.offsetHeight + at.y) / 2);
     // left trace: down from the id block, across, then onto the '@'
-    wirePaths[0].setAttribute('d', `M330 168 L330 330 L${atX} 330 L${atX} ${vy(at.y - gap)}`);
+    wirePaths[0].setAttribute('d', `M${leftX} ${startY} L${leftX} ${midY} L${atX} ${midY} L${atX} ${vy(at.y - gap)}`);
     // right trace: across from the id block, then down onto the LinkedIn icon
-    wirePaths[1].setAttribute('d', `M405 168 L${liX} 168 L${liX} ${vy(li.y - gap)}`);
+    wirePaths[1].setAttribute('d', `M${rightX} ${startY} L${liX} ${startY} L${liX} ${vy(li.y - gap)}`);
   }
   positionWires();
   // Fonts change text metrics → the '@' shifts; reposition once they're ready.

@@ -134,6 +134,10 @@
         <svg class="i-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/></svg>
         <svg class="i-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3m8 0v-3a2 2 0 0 1 2-2h3"/></svg>
       </button>
+      <!-- Lives in the dock so it can sit beside the deconstruct toggle on
+           mobile. On desktop it's position:fixed (bottom-right), so its place in
+           the DOM doesn't affect where it renders. -->
+      <button class="themebtn" id="theme" type="button" title="Toggle theme" aria-label="Toggle light/dark theme">◐</button>
     </div>
   </main>
 
@@ -143,7 +147,6 @@
     <a href="/privacy">Privacy</a>
   </footer>
 
-  <button class="themebtn" id="theme" type="button" title="Toggle theme" aria-label="Toggle light/dark theme">◐</button>
   <div class="toast" id="toast" role="status" aria-live="polite">Contact card downloaded (.vcf)</div>
 </body>
 </html>

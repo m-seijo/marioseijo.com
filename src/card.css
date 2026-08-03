@@ -200,10 +200,15 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
    must be click-through — otherwise it eats clicks/hover on the connect icons.
    Only the actual controls take pointer events back. */
 .dock {
-  position: relative; z-index: 6; flex: 0 0 auto; display: flex; flex-direction: column;
-  align-items: center; gap: 12px; padding: 0 24px clamp(12px,2.2vh,22px);
+  position: relative; z-index: 6; flex: 0 0 auto; display: flex; flex-direction: row;
+  align-items: center; justify-content: center; gap: 12px;
+  padding: 0 24px clamp(12px,2.2vh,22px);
   pointer-events: none;
 }
+/* The dock is click-through (see above), so each real control takes its own
+   pointer events back. .themebtn is position:fixed on desktop and only joins
+   this row on mobile. */
+.dock .themebtn { pointer-events: auto; }
 /* Touch-only deconstruct toggle. Desktop keeps the scroll wheel and shows
    nothing; `hover:none and pointer:coarse` is the honest test for "no wheel,
    no hover" rather than guessing from viewport width. */
@@ -252,8 +257,46 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
   body { min-height: 100dvh; }
   main { flex: 1 0 auto; min-height: auto; }
   .cardwrap { min-height: 54vh; perspective: 1100px; }
-  .card { width: 92vw; }
   h1 { font-size: clamp(32px,10vw,52px); }
+
+  /* --- portrait card ------------------------------------------------------
+     A landscape card in a portrait viewport wasted the width it didn't have and
+     overflowed the screen (the QR back ran off the right edge). On phones the
+     card turns portrait and its faces stack vertically. Desktop keeps the
+     landscape business-card proportions. */
+  .card { width: min(80vw, 46vh); aspect-ratio: 5 / 6; }
+
+  /* Front: the absolutely-positioned landscape composition becomes an honest
+     top-to-bottom stack — identity at the top, contact details at the bottom. */
+  .face.front { display: flex; flex-direction: column; align-items: flex-start; }
+  .mark,
+  .idblock,
+  .channels,
+  .socials { position: static; }
+  .idblock { margin-top: 14px; }
+  .channels { margin-top: auto; }   /* pushes contact + socials to the bottom */
+  .socials { margin-top: 14px; }
   .name { white-space: normal; }
-  .handoff { position: static; display: flex; justify-content: center; margin: 8px auto 0; }
+
+  /* Back: QR above the copy instead of beside it. */
+  .face.back {
+    grid-template-columns: 1fr; justify-items: center; align-content: center;
+    text-align: center; gap: 16px;
+  }
+  .qrtile { width: min(44vw, 180px); }
+  .qrside { align-items: center; }
+  .qrside .name { white-space: nowrap; }
+  .qrcap { max-width: 30ch; }
+
+  /* The two controls sit together under the card (theme leaves its fixed
+     bottom-right corner and joins the row). */
+  .themebtn { position: static; width: 44px; height: 44px; font-size: 17px; }
+
+  /* Studio handoff moves below the card, above the footer — see tokens.css for
+     the flex `order` that reseats it, since it's a sibling of <main>. */
+  .handoff {
+    position: static; display: flex; flex-wrap: wrap; justify-content: center;
+    text-align: center; gap: 6px; margin: 0 auto; padding: 4px 24px 14px;
+    font-size: 16px; color: var(--ink); font-weight: 600;
+  }
 }

@@ -179,4 +179,11 @@ a { color: inherit; }
 /* --- mobile: the fixed chrome joins the flow so it can't cover content ----- */
 @media (max-width: 640px) {
   .wordmark { position: static; justify-content: center; margin: 14px auto 0; }
+  /* The handoff is a sibling of <main>, so it can't be moved under the card by
+     nesting — reorder the body column instead: logo, hero+card+controls,
+     handoff, footer. (.toast stays position:fixed, so order doesn't apply.) */
+  .wordmark   { order: 1; }
+  main        { order: 2; }
+  .handoff    { order: 3; }
+  .sitefooter { order: 4; }
 }
