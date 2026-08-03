@@ -113,15 +113,114 @@ export function initCard() {
   const pcs = Array.from(document.querySelectorAll('.face.front .pc'));
   // mark, idblock, channels(bottom-left), socials(bottom-right)
   const burst = [[-160,-130,150], [60,-190,250], [-110,180,180], [210,150,220]];
+
+  // The burst is authored in fixed px for the full-size card, but the viewport
+  // isn't always big enough to hold it: at 1440x900 the 940x550 card leaves only
+  // ~175px above and below, so `channels` (+180y) and `socials` (+150y) — plus
+  // the z push, which perspective magnifies — flew clean off the bottom edge,
+  // taking the email, phone and connect icons with them.
+  //
+  // Rather than re-tuning constants that would break at the next viewport size,
+  // measure the largest scale that still keeps every piece on screen. Perspective
+  // makes the projected offset a nonlinear function of z, so solve it by binary
+  // search over real getBoundingClientRect() readings instead of modelling it.
+  const EDGE = 24;          // keep this much clear of the viewport edge
+
+  // Per-piece, PER-AXIS scale. A single global scalar collapses on narrow
+  // viewports — a phone leaves ~15px of side room, which would clamp the whole
+  // burst (including the plentiful vertical travel) down to nothing. Scaling each
+  // axis independently lets a piece use the room that exists in its own
+  // direction: sideways on a wide desktop, upward/downward on a tall phone.
+  let fit = pcs.map(() => ({ x: 1, y: 1 }));
+
+  const rects = () => pcs.map((el) => el.getBoundingClientRect());
+  function applyBurst(scales) {
+    pcs.forEach((el, i) => {
+      const b = burst[i] || [0, 0, 140];
+      const s = scales[i];
+      el.style.transform =
+        `translate3d(${b[0]*s.x}px, ${b[1]*s.y}px, ${b[2]*Math.min(s.x,s.y)}px)`;
+    });
+  }
+
+  function measureFit() {
+    if (!pcs.length) return;
+    const saved = pcs.map((el) => [el.style.transition, el.style.transform]);
+    pcs.forEach((el) => { el.style.transition = 'none'; });
+
+    applyBurst(pcs.map(() => ({ x: 0, y: 0 }))); const rest = rects();
+    applyBurst(pcs.map(() => ({ x: 1, y: 1 }))); const full = rects();
+    const vw = window.innerWidth, vh = window.innerHeight;
+
+    // Staying inside the viewport isn't enough to stay READABLE: at 1440x900 the
+    // id block cleared the bottom edge only to land on top of the headline, and
+    // the connect icons landed on the theme button. So the safe area is the band
+    // between the hero text and the page chrome below the card, not the raw
+    // viewport. On a landscape desktop this leaves far more room sideways than
+    // vertically, which is what makes the pieces fly outward rather than up.
+    const GAP = 12;
+    let safeTop = EDGE, safeBottom = vh - EDGE;
+    const lede = document.querySelector('.lede');
+    if (lede) safeTop = Math.max(safeTop, lede.getBoundingClientRect().bottom + GAP);
+    const below = ['.dock', '.sitefooter', '#theme']
+      .map((s) => document.querySelector(s))
+      .filter(Boolean)
+      .map((el) => el.getBoundingClientRect().top)
+      .filter((t) => t > 0);
+    if (below.length) safeBottom = Math.min(safeBottom, Math.min(...below) - GAP);
+
+    // Never demand better than the resting position: if the card already
+    // overflows a tiny viewport, that isn't the burst's fault to fix.
+    const bounds = rest.map((r) => ({
+      minX: Math.min(EDGE, r.left),   maxX: Math.max(vw - EDGE, r.right),
+      minY: Math.min(safeTop, r.top), maxY: Math.max(safeBottom, r.bottom),
+    }));
+
+    // Largest fraction of this axis's travel that still lands inside the bounds.
+    const axis = (restNear, restFar, fullNear, fullFar, lo, hi) => {
+      let s = 1;
+      const outFar = fullFar - hi, travelFar = fullFar - restFar;
+      if (outFar > 0 && travelFar > 0) s = Math.min(s, (travelFar - outFar) / travelFar);
+      const outNear = lo - fullNear, travelNear = restNear - fullNear;
+      if (outNear > 0 && travelNear > 0) s = Math.min(s, (travelNear - outNear) / travelNear);
+      return Math.max(0, Math.min(1, s));
+    };
+
+    fit = pcs.map((_, i) => ({
+      x: axis(rest[i].left, rest[i].right, full[i].left, full[i].right, bounds[i].minX, bounds[i].maxX),
+      y: axis(rest[i].top, rest[i].bottom, full[i].top, full[i].bottom, bounds[i].minY, bounds[i].maxY),
+    }));
+
+    // z magnifies the projection, so the linear estimate above can still
+    // overshoot. Verify for real and shrink whichever axis is still out.
+    for (let pass = 0; pass < 3; pass++) {
+      applyBurst(fit);
+      let changed = false;
+      rects().forEach((r, i) => {
+        const b = bounds[i];
+        if (r.left < b.minX - 0.5 || r.right > b.maxX + 0.5) { fit[i].x *= 0.85; changed = true; }
+        if (r.top < b.minY - 0.5 || r.bottom > b.maxY + 0.5) { fit[i].y *= 0.85; changed = true; }
+      });
+      if (!changed) break;
+    }
+
+    pcs.forEach((el, i) => { [el.style.transition, el.style.transform] = saved[i]; });
+    renderPieces(false);
+  }
+
   function renderPieces(stagger) {
     // will-change only while deconstructed: a permanent hint would layer-promote
     // the pieces and break click/hover hit-testing on the resting 3D card.
     const active = explodeF > 0.001;
     pcs.forEach((el, i) => {
       const b = burst[i] || [0, 0, 140];
+      const s = fit[i] || { x: 1, y: 1 };
+      const x = b[0] * s.x * explodeF;
+      const y = b[1] * s.y * explodeF;
+      const z = b[2] * Math.min(s.x, s.y) * explodeF;
       el.style.willChange = active ? 'transform' : 'auto';
       el.style.transitionDelay = stagger ? (i * 0.04) + 's' : '0s';
-      el.style.transform = `translate3d(${b[0]*explodeF}px, ${b[1]*explodeF}px, ${b[2]*explodeF}px)`;
+      el.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
     });
   }
   // Touch-only toggle (hidden on pointer devices via CSS). It's the single
@@ -181,9 +280,21 @@ export function initCard() {
     wirePaths[1].setAttribute('d', `M405 168 L${liX} 168 L${liX} ${vy(li.y - gap)}`);
   }
   positionWires();
-  window.addEventListener('resize', positionWires);
   // Fonts change text metrics → the '@' shifts; reposition once they're ready.
   if (document.fonts?.ready) document.fonts.ready.then(positionWires);
+
+  // measureFit() forces synchronous layout, so keep it off the first-paint path
+  // (perf budget: LCP < 2.5s). It's only needed before the first deconstruct.
+  const idleFit = window.requestIdleCallback || ((cb) => setTimeout(cb, 200));
+  idleFit(() => measureFit());
+  if (document.fonts?.ready) document.fonts.ready.then(measureFit);
+
+  let resizeT;
+  window.addEventListener('resize', () => {
+    positionWires();
+    clearTimeout(resizeT);
+    resizeT = setTimeout(measureFit, 150); // debounced: it's a layout-thrash pass
+  });
 
   // ---- save contact (toast only) ----
   // The href is a real hosted /mario-seijo.vcf in the HTML, so Save works with
