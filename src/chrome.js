@@ -14,9 +14,8 @@ export function initChrome() {
     });
   }
 
-  // Auto-updating END year of the copyright range. 2009 — the year
-  // of first publication — is hard-coded in the HTML, which also ships a real
-  // end year so the notice stays correct with JS off.
+  // Auto-updating copyright year. The HTML ships a real year too, so the notice
+  // stays correct with JS off.
   const year = String(new Date().getFullYear());
   document.querySelectorAll('[data-year]').forEach((el) => { el.textContent = year; });
 }
