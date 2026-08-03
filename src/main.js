@@ -5,13 +5,11 @@ import './tokens.css';
 import './card.css';
 import { initChrome } from './chrome.js';
 import { initCard } from './card.js';
-import { initAnalytics } from './analytics.js';
 
-window.__MARIO_SEIJO_BUILD_ID = '2026-07-28-ga4-consent';
+window.__MARIO_SEIJO_BUILD_ID = '2026-08-03-no-analytics';
 
 initChrome();
 initCard();
-initAnalytics();
 
 // Defer the WebGL glass layer to idle time (code-split; three.js only loads here).
 const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 200));
