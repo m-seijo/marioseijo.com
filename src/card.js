@@ -124,12 +124,25 @@ export function initCard() {
       el.style.transform = `translate3d(${b[0]*explodeF}px, ${b[1]*explodeF}px, ${b[2]*explodeF}px)`;
     });
   }
+  // Touch-only toggle (hidden on pointer devices via CSS). It's the single
+  // deconstruct/reassemble control on phones, where `wheel` never fires.
+  const explodeBtn = document.getElementById('explodeToggle');
+  function syncExplodeBtn() {
+    if (!explodeBtn) return;
+    const open = explodeF > 0.02;
+    explodeBtn.setAttribute('aria-pressed', String(open));
+    explodeBtn.setAttribute('aria-label', open ? 'Reassemble the card' : 'Deconstruct the card');
+  }
+
   function setExplode(f, stagger) {
     explodeF = Math.max(0, Math.min(1, f));
     if (flipped && explodeF > 0.02) { flipped = false; rotY = base() + restY; rotX = restX; apply(); }
     renderPieces(stagger);
+    syncExplodeBtn();
     if (stagger) setTimeout(() => pcs.forEach((el) => { el.style.transitionDelay = '0s'; }), 600);
   }
+
+  explodeBtn?.addEventListener('click', () => setExplode(explodeF > 0.02 ? 0 : 1, true));
   wrap.addEventListener('wheel', (e) => {
     e.preventDefault();
     setExplode(explodeF + e.deltaY * 0.0016, false);

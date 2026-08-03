@@ -209,6 +209,31 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
   text-align: center; pointer-events: none;
 }
 
+/* Touch-only deconstruct toggle. Desktop keeps the scroll wheel and shows
+   nothing; `hover:none and pointer:coarse` is the honest test for "no wheel,
+   no hover" rather than guessing from viewport width. */
+.explodebtn { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .explodebtn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; /* 44px = the iOS/Android minimum touch target */
+    border-radius: 50%; border: 1px solid var(--hair); background: var(--ground);
+    color: var(--muted); cursor: pointer; pointer-events: auto;
+    transition: border-color .2s, color .2s, transform .1s;
+  }
+}
+.explodebtn:active { transform: translateY(1px); }
+.explodebtn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
+.explodebtn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-ink); }
+.explodebtn svg {
+  width: 19px; height: 19px; stroke: currentColor; fill: none;
+  stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+}
+/* Show the icon for the action the button will perform next. */
+.explodebtn .i-in,
+.explodebtn[aria-pressed="true"] .i-out { display: none; }
+.explodebtn[aria-pressed="true"] .i-in { display: block; }
+
 /* --- reduced motion ------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   .card { animation: none; }

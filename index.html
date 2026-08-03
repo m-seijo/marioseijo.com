@@ -128,6 +128,13 @@
 
     <div class="dock">
       <p class="hint">Drag to spin · scroll to deconstruct · flip for the QR</p>
+      <!-- Touch-only: the wheel event never fires from touch scrolling, so this
+           is the sole deconstruct path on phones. Hidden on any device with a
+           real pointer (see card.css). -->
+      <button class="explodebtn" id="explodeToggle" type="button" aria-pressed="false" aria-label="Deconstruct the card">
+        <svg class="i-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/></svg>
+        <svg class="i-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3m8 0v-3a2 2 0 0 1 2-2h3"/></svg>
+      </button>
     </div>
   </main>
 
