@@ -148,7 +148,21 @@ export function initCard() {
     const savedTransition = pcs.map((el) => el.style.transition);
     pcs.forEach((el) => { el.style.transition = 'none'; });
 
+    // The card holds two different poses across a deconstruct: the resting one it
+    // starts from, and the tilt the rAF loop eases into while exploded (see the
+    // explodeF branch in loop()). That tilt swings the pieces' projected
+    // positions outward, so fitting only the resting pose under-estimates the
+    // spread — pieces crossed the viewport edge on a real device while headless
+    // (where rAF never runs, so the card never tilts) measured clean. Fit BOTH,
+    // since the animation passes through everything between them.
+    const savedCardTransform = card.style.transform;
+    const POSE_REST = `rotateX(${restX}deg) rotateY(${base() + restY}deg)`;
+    const POSE_EXPLODED = `rotateX(${restX + 5}deg) rotateY(${base() + restY - 8}deg)`;
+    const setPose = (p) => { card.style.transform = p; };
+
+    setPose(POSE_REST);
     applyBurst(pcs.map(() => ({ x: 0, y: 0 }))); const rest = rects();
+    setPose(POSE_EXPLODED);
     applyBurst(pcs.map(() => ({ x: 1, y: 1 }))); const full = rects();
     const vw = window.innerWidth, vh = window.innerHeight;
 
@@ -193,14 +207,17 @@ export function initCard() {
 
     // z magnifies the projection, so the linear estimate above can still
     // overshoot. Verify for real and shrink whichever axis is still out.
-    for (let pass = 0; pass < 3; pass++) {
-      applyBurst(fit);
+    for (let pass = 0; pass < 4; pass++) {
       let changed = false;
-      rects().forEach((r, i) => {
-        const b = bounds[i];
-        if (r.left < b.minX - 0.5 || r.right > b.maxX + 0.5) { fit[i].x *= 0.85; changed = true; }
-        if (r.top < b.minY - 0.5 || r.bottom > b.maxY + 0.5) { fit[i].y *= 0.85; changed = true; }
-      });
+      for (const pose of [POSE_EXPLODED, POSE_REST]) {
+        setPose(pose);
+        applyBurst(fit);
+        rects().forEach((r, i) => {
+          const b = bounds[i];
+          if (r.left < b.minX - 0.5 || r.right > b.maxX + 0.5) { fit[i].x *= 0.85; changed = true; }
+          if (r.top < b.minY - 0.5 || r.bottom > b.maxY + 0.5) { fit[i].y *= 0.85; changed = true; }
+        });
+      }
       if (!changed) break;
     }
 
@@ -209,6 +226,7 @@ export function initCard() {
     // makes the browser tween from the measured full-burst pose back to rest —
     // a 0.45s phantom reassemble a moment after load.
     renderPieces(false);
+    card.style.transform = savedCardTransform;
     void pcs[0].offsetHeight; // flush the rest pose before transitions come back
     pcs.forEach((el, i) => { el.style.transition = savedTransition[i]; });
   }
@@ -242,6 +260,9 @@ export function initCard() {
     explodeF = Math.max(0, Math.min(1, f));
     if (flipped && explodeF > 0.02) { flipped = false; rotY = base() + restY; rotX = restX; apply(); }
     renderPieces(stagger);
+    // Drives the wire glow (see .card.exploded in card.css) — :hover can't do
+    // this on touch, which is where the deconstruct now lives.
+    card.classList.toggle('exploded', explodeF > 0.02);
     syncExplodeBtn();
     if (stagger) setTimeout(() => pcs.forEach((el) => { el.style.transitionDelay = '0s'; }), 600);
   }
@@ -282,13 +303,30 @@ export function initCard() {
     const atX = vx(at.x + atEl.offsetWidth / 2);
     const liX = vx(li.x + liEl.offsetWidth / 2);
     // Both traces leave the id block. These used to be hardcoded viewBox
-    // coordinates, which only lined up on the landscape card — on the portrait
-    // mobile card they floated loose in the middle of the face. Derive them from
-    // the id block's real box so they stay anchored at any aspect ratio.
-    const startY = vy(id.y + idEl.offsetHeight + 22);
+    // coordinates, which only lined up on the landscape card.
+    const top = id.y + idEl.offsetHeight + 22;
+    const startY = vy(top);
+
+    if (H > W) {
+      // PORTRAIT (phone): the stacked layout leaves a wide empty band between
+      // the identity and the contact rows. Route both traces down the MIDDLE of
+      // the card through that band — otherwise they hug the left edge and read
+      // as stray stubs. The elbows land inside the band, so the empty space
+      // becomes part of the composition.
+      const cx = W / 2;
+      const bandBottom = Math.min(at.y, li.y);
+      const elbow = (t) => vy(top + (bandBottom - top) * t);
+      wirePaths[0].setAttribute('d',
+        `M${vx(cx - 34)} ${startY} L${vx(cx - 34)} ${elbow(0.42)} L${atX} ${elbow(0.42)} L${atX} ${vy(at.y - gap)}`);
+      wirePaths[1].setAttribute('d',
+        `M${vx(cx + 34)} ${startY} L${vx(cx + 34)} ${elbow(0.72)} L${liX} ${elbow(0.72)} L${liX} ${vy(li.y - gap)}`);
+      return;
+    }
+
+    // LANDSCAPE (desktop): keep the original composition, anchored to the id
+    // block's real box so it holds at any card width.
     const leftX = vx(id.x + idEl.offsetWidth * 0.62);
     const rightX = vx(id.x + idEl.offsetWidth + 18);
-    // Elbow height for the left trace: midway between the id block and the '@'.
     const midY = vy((id.y + idEl.offsetHeight + at.y) / 2);
     // left trace: down from the id block, across, then onto the '@'
     wirePaths[0].setAttribute('d', `M${leftX} ${startY} L${leftX} ${midY} L${atX} ${midY} L${atX} ${vy(at.y - gap)}`);
