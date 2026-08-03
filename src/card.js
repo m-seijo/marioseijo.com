@@ -308,18 +308,23 @@ export function initCard() {
     const startY = vy(top);
 
     if (H > W) {
-      // PORTRAIT (phone): the stacked layout leaves a wide empty band between
-      // the identity and the contact rows. Route both traces down the MIDDLE of
-      // the card through that band — otherwise they hug the left edge and read
-      // as stray stubs. The elbows land inside the band, so the empty space
-      // becomes part of the composition.
-      const cx = W / 2;
+      // PORTRAIT (phone): the stacked layout leaves a wide empty band between the
+      // identity and the contact rows. Per Mario's mockup, the traces become a
+      // symmetric pair of descending brackets that fill that band: each drops
+      // from below the title near an outer edge, steps INWARD, and stops short of
+      // the contact block. On this face they read as composition rather than as
+      // literal pointers — the landscape card below keeps the pointing version.
       const bandBottom = Math.min(at.y, li.y);
-      const elbow = (t) => vy(top + (bandBottom - top) * t);
+      const band = bandBottom - top;
+      const elbowY = vy(top + band * 0.53);
+      const endY = vy(top + band * 0.78);
+      // Outer start, inner finish — as fractions of the face width.
+      const L_OUT = 0.15, L_IN = 0.235, R_OUT = 0.815, R_IN = 0.58;
+      const fx = (f) => vx(W * f);
       wirePaths[0].setAttribute('d',
-        `M${vx(cx - 34)} ${startY} L${vx(cx - 34)} ${elbow(0.42)} L${atX} ${elbow(0.42)} L${atX} ${vy(at.y - gap)}`);
+        `M${fx(L_OUT)} ${startY} L${fx(L_OUT)} ${elbowY} L${fx(L_IN)} ${elbowY} L${fx(L_IN)} ${endY}`);
       wirePaths[1].setAttribute('d',
-        `M${vx(cx + 34)} ${startY} L${vx(cx + 34)} ${elbow(0.72)} L${liX} ${elbow(0.72)} L${liX} ${vy(li.y - gap)}`);
+        `M${fx(R_OUT)} ${startY} L${fx(R_OUT)} ${elbowY} L${fx(R_IN)} ${elbowY} L${fx(R_IN)} ${endY}`);
       return;
     }
 
