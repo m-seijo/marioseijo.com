@@ -222,6 +222,8 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
     transition: border-color .2s, color .2s, transform .1s;
   }
 }
+/* Sits above the footer's stacking level so it can never be buried by it. */
+.explodebtn { position: relative; z-index: 7; }
 .explodebtn:active { transform: translateY(1px); }
 .explodebtn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
 .explodebtn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-ink); }
@@ -243,6 +245,17 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
 /* --- mobile --------------------------------------------------------------- */
 @media (max-width: 640px) {
   body { overflow: auto; }
+  /* Let the column grow with its content instead of squeezing <main>.
+     With a fixed `height:100%` body, anything that made the footer taller (it
+     wraps to two lines on narrow phones) stole height from <main> — but
+     .cardwrap's 54vh floor meant the space couldn't come from the card, so the
+     dock overflowed <main> and landed under the footer, which paints later at
+     the same z-index and swallowed taps on the deconstruct toggle. Growing the
+     page (it already scrolls here) keeps dock and footer in honest flow.
+     dvh, not vh, so the phone's collapsing URL bar doesn't re-introduce it. */
+  html, body { height: auto; }
+  body { min-height: 100dvh; }
+  main { flex: 1 0 auto; min-height: auto; }
   .cardwrap { min-height: 54vh; perspective: 1100px; }
   .card { width: 92vw; }
   h1 { font-size: clamp(32px,10vw,52px); }
