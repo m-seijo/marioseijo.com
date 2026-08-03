@@ -204,11 +204,6 @@ h1 .clarity { color: var(--accent); } /* the true brand accent #FF6257 */
   align-items: center; gap: 12px; padding: 0 24px clamp(12px,2.2vh,22px);
   pointer-events: none;
 }
-.hint {
-  font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
-  text-align: center; pointer-events: none;
-}
-
 /* Touch-only deconstruct toggle. Desktop keeps the scroll wheel and shows
    nothing; `hover:none and pointer:coarse` is the honest test for "no wheel,
    no hover" rather than guessing from viewport width. */
