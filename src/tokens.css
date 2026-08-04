@@ -163,7 +163,13 @@ a { color: inherit; }
   font-size: 13px; color: var(--muted);
 }
 .sitefooter .sep { opacity: .5; }
-.sitefooter a { color: var(--muted); text-decoration: none; }
+/* Padding, not font-size, gives the link a >=24x24 hit area (WCAG 2.2 target
+   size — the footer link was the last accessibility audit failure). The negative
+   margin absorbs it so the footer's visual rhythm is unchanged. */
+.sitefooter a {
+  color: var(--muted); text-decoration: none;
+  display: inline-block; padding: 6px 8px; margin: -6px -6px;
+}
 .sitefooter a:hover { color: var(--accent-ink); }
 .sitefooter a:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
 /* --- toast ---------------------------------------------------------------- */

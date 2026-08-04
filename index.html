@@ -75,7 +75,10 @@
     </header>
 
     <div class="cardwrap" id="cardwrap">
-      <div class="card" id="card" tabindex="0" role="group" aria-label="Interactive business card — drag to spin, scroll to deconstruct, flip for the QR code, or save the contact">
+      <!-- The label names only what a keyboard or screen-reader user can
+           actually do. Scroll-to-deconstruct is deliberately omitted: it's
+           desktop-pointer-only and not operable this way. -->
+      <div class="card" id="card" tabindex="0" role="group" aria-label="Interactive business card — drag or use the arrow keys to spin it, press Enter to flip to the QR code, or save the contact">
         <!-- FRONT — real contact DOM, marked up as an h-card -->
         <address class="face front h-card">
           <span class="p-org visually-hidden">Minimo Studio</span>

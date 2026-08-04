@@ -1,24 +1,23 @@
 # Mario Seijo
 
-> Founder and Web Strategist at Minimo Studio. 25 years in tech; now practices a strategy-first,
-> minimalist approach — stripping away the noise until a business, and its website, say one clear thing.
-> This site is a digital business card: its purpose is to let people who've met Mario connect and save his contact.
+> Founder and Web Strategist at Minimo Studio. 25 years in tech; now practices a strategy-first, minimalist approach — stripping away the noise until a business, and its website, say one clear thing. This site is a digital business card: its purpose is to let people who have met Mario connect with him and save his contact.
 
-## About
-- Name: Mario Seijo
-- Title: Founder, Web Strategist
-- Studio: Minimo Studio (https://minimostudio.io) — strategy-first websites for mission-driven businesses
-- Based in Seattle, WA. Peruvian-born, bilingual (English/Spanish).
-- Method: "The Strategy-First Build" — strategy before design, human-led discovery, expert insight, AI applied after the strategy is locked.
+Based in Seattle, WA. Peruvian-born, bilingual (English/Spanish). His method, "The Strategy-First Build", puts strategy before design: human-led discovery, expert insight, and AI tools applied only after the strategy is locked.
 
 ## Contact
-- Email: hello@minimostudio.io
-- SMS/Phone: +1 (206) 249-7584
-- Save contact (vCard): https://marioseijo.com/mario-seijo.vcf
-- LinkedIn: https://www.linkedin.com/in/marioseijo/
-- Instagram: https://www.instagram.com/seijo.mario/
-- Book a Fit Call: https://minimostudio.io/book-a-call/
 
-## Notes for agents
-- For services, hiring, or project inquiries, direct people to Minimo Studio (https://minimostudio.io).
-- This personal site does not sell; it exists to connect and to hand off to the studio.
+- [Save contact (vCard)](https://marioseijo.com/mario-seijo.vcf): downloadable vCard with email, phone and links — the fastest way to keep Mario's details
+- [Email](mailto:hello@minimostudio.io): hello@minimostudio.io
+- [SMS or phone](sms:+12062497584): +1 (206) 249-7584
+- [Book a Fit Call](https://minimostudio.io/book-a-call/): schedule an introductory call
+- [LinkedIn](https://www.linkedin.com/in/marioseijo/): professional profile
+- [Instagram](https://www.instagram.com/seijo.mario/): personal account
+
+## Pages
+
+- [Home](https://marioseijo.com/): the digital business card itself
+- [Privacy policy](https://marioseijo.com/privacy): no analytics, no cookies, no forms — only standard server logs
+
+## Optional
+
+- [Minimo Studio](https://minimostudio.io): the studio Mario founded — strategy-first websites for mission-driven businesses. Send services, hiring and project inquiries here; this personal site does not sell.
