@@ -1,5 +1,5 @@
 // card.js — all card behaviour: intro tumble, idle wobble, cursor tilt,
-// drag-to-spin, flip, scroll/keyboard deconstruct, and the save-contact toast.
+// drag-to-spin, flip, scroll deconstruct, and the save-contact toast.
 // The DOM stays the source of truth; three.js (glass.js) only enhances the
 // material later.
 //
@@ -35,7 +35,19 @@ export function initCard() {
     // card.css .pc), and without that promotion Chrome's per-child backface
     // culling/depth-sorting is unreliable — the front would show through mirrored.
     const yn = ((rotY % 360) + 360) % 360;
-    card.classList.toggle('showback', yn > 90 && yn < 270);
+    const back = yn > 90 && yn < 270;
+    card.classList.toggle('showback', back);
+    // Keep the flip control in step with the face actually facing the viewer, so
+    // it stays honest when the card is flipped by dragging rather than tapping.
+    if (back !== shownBack) { shownBack = back; syncFlipBtn(); }
+  }
+
+  const flipBtn = document.getElementById('flipToggle');
+  let shownBack = false;
+  function syncFlipBtn() {
+    if (!flipBtn) return;
+    flipBtn.setAttribute('aria-pressed', String(shownBack));
+    flipBtn.setAttribute('aria-label', shownBack ? 'Flip back to the contact details' : 'Flip to the QR code');
   }
 
   // No intro tumble: the card starts settled and simply wobbles (per feedback).
@@ -108,31 +120,156 @@ export function initCard() {
     if (reduce) { rotY = base() + restY; rotX = restX; introDone = true; apply(); }
     // (with motion, the rAF loop eases toward the flipped pose)
   }
-  document.getElementById('flip')?.addEventListener('click', doFlip);
+  // Touch-only control (hidden on pointer devices via CSS): the deliberate way
+  // to reach the QR back on a phone, where there's no hover and no keyboard.
+  flipBtn?.addEventListener('click', doFlip);
 
-  // ---- deconstruct: pieces fly OUTSIDE the card; buttons AND scroll wheel ----
+  // ---- deconstruct: pieces fly OUTSIDE the card; driven by the scroll wheel ---
   const pcs = Array.from(document.querySelectorAll('.face.front .pc'));
   // mark, idblock, channels(bottom-left), socials(bottom-right)
   const burst = [[-160,-130,150], [60,-190,250], [-110,180,180], [210,150,220]];
+
+  // The burst is authored in fixed px for the full-size card, but the viewport
+  // isn't always big enough to hold it: at 1440x900 the 940x550 card leaves only
+  // ~175px above and below, so `channels` (+180y) and `socials` (+150y) — plus
+  // the z push, which perspective magnifies — flew clean off the bottom edge,
+  // taking the email, phone and connect icons with them.
+  //
+  // Rather than re-tuning constants that would break at the next viewport size,
+  // measure the largest scale that still keeps every piece on screen. Perspective
+  // makes the projected offset a nonlinear function of z, so solve it by binary
+  // search over real getBoundingClientRect() readings instead of modelling it.
+  const EDGE = 24;          // keep this much clear of the viewport edge
+
+  // Per-piece, PER-AXIS scale. A single global scalar collapses on narrow
+  // viewports — a phone leaves ~15px of side room, which would clamp the whole
+  // burst (including the plentiful vertical travel) down to nothing. Scaling each
+  // axis independently lets a piece use the room that exists in its own
+  // direction: sideways on a wide desktop, upward/downward on a tall phone.
+  let fit = pcs.map(() => ({ x: 1, y: 1 }));
+
+  const rects = () => pcs.map((el) => el.getBoundingClientRect());
+  function applyBurst(scales) {
+    pcs.forEach((el, i) => {
+      const b = burst[i] || [0, 0, 140];
+      const s = scales[i];
+      el.style.transform =
+        `translate3d(${b[0]*s.x}px, ${b[1]*s.y}px, ${b[2]*Math.min(s.x,s.y)}px)`;
+    });
+  }
+
+  function measureFit() {
+    if (!pcs.length) return;
+    const savedTransition = pcs.map((el) => el.style.transition);
+    pcs.forEach((el) => { el.style.transition = 'none'; });
+
+    // The card holds two different poses across a deconstruct: the resting one it
+    // starts from, and the tilt the rAF loop eases into while exploded (see the
+    // explodeF branch in loop()). That tilt swings the pieces' projected
+    // positions outward, so fitting only the resting pose under-estimates the
+    // spread — pieces crossed the viewport edge on a real device while headless
+    // (where rAF never runs, so the card never tilts) measured clean. Fit BOTH,
+    // since the animation passes through everything between them.
+    const savedCardTransform = card.style.transform;
+    const POSE_REST = `rotateX(${restX}deg) rotateY(${base() + restY}deg)`;
+    const POSE_EXPLODED = `rotateX(${restX + 5}deg) rotateY(${base() + restY - 8}deg)`;
+    const setPose = (p) => { card.style.transform = p; };
+
+    setPose(POSE_REST);
+    applyBurst(pcs.map(() => ({ x: 0, y: 0 }))); const rest = rects();
+    setPose(POSE_EXPLODED);
+    applyBurst(pcs.map(() => ({ x: 1, y: 1 }))); const full = rects();
+    const vw = window.innerWidth, vh = window.innerHeight;
+
+    // Staying inside the viewport isn't enough to stay READABLE: at 1440x900 the
+    // id block cleared the bottom edge only to land on top of the headline, and
+    // the connect icons landed on the theme button. So the safe area is the band
+    // between the hero text and the page chrome below the card, not the raw
+    // viewport. On a landscape desktop this leaves far more room sideways than
+    // vertically, which is what makes the pieces fly outward rather than up.
+    const GAP = 12;
+    let safeTop = EDGE, safeBottom = vh - EDGE;
+    const lede = document.querySelector('.lede');
+    if (lede) safeTop = Math.max(safeTop, lede.getBoundingClientRect().bottom + GAP);
+    const below = ['.dock', '.sitefooter', '#theme']
+      .map((s) => document.querySelector(s))
+      .filter(Boolean)
+      .map((el) => el.getBoundingClientRect().top)
+      .filter((t) => t > 0);
+    if (below.length) safeBottom = Math.min(safeBottom, Math.min(...below) - GAP);
+
+    // Never demand better than the resting position: if the card already
+    // overflows a tiny viewport, that isn't the burst's fault to fix.
+    const bounds = rest.map((r) => ({
+      minX: Math.min(EDGE, r.left),   maxX: Math.max(vw - EDGE, r.right),
+      minY: Math.min(safeTop, r.top), maxY: Math.max(safeBottom, r.bottom),
+    }));
+
+    // Largest fraction of this axis's travel that still lands inside the bounds.
+    const axis = (restNear, restFar, fullNear, fullFar, lo, hi) => {
+      let s = 1;
+      const outFar = fullFar - hi, travelFar = fullFar - restFar;
+      if (outFar > 0 && travelFar > 0) s = Math.min(s, (travelFar - outFar) / travelFar);
+      const outNear = lo - fullNear, travelNear = restNear - fullNear;
+      if (outNear > 0 && travelNear > 0) s = Math.min(s, (travelNear - outNear) / travelNear);
+      return Math.max(0, Math.min(1, s));
+    };
+
+    fit = pcs.map((_, i) => ({
+      x: axis(rest[i].left, rest[i].right, full[i].left, full[i].right, bounds[i].minX, bounds[i].maxX),
+      y: axis(rest[i].top, rest[i].bottom, full[i].top, full[i].bottom, bounds[i].minY, bounds[i].maxY),
+    }));
+
+    // z magnifies the projection, so the linear estimate above can still
+    // overshoot. Verify for real and shrink whichever axis is still out.
+    for (let pass = 0; pass < 4; pass++) {
+      let changed = false;
+      for (const pose of [POSE_EXPLODED, POSE_REST]) {
+        setPose(pose);
+        applyBurst(fit);
+        rects().forEach((r, i) => {
+          const b = bounds[i];
+          if (r.left < b.minX - 0.5 || r.right > b.maxX + 0.5) { fit[i].x *= 0.85; changed = true; }
+          if (r.top < b.minY - 0.5 || r.bottom > b.maxY + 0.5) { fit[i].y *= 0.85; changed = true; }
+        });
+      }
+      if (!changed) break;
+    }
+
+    // Order matters: put the pieces back at rest while transitions are STILL
+    // off, flush that, and only then restore the transition. Restoring it first
+    // makes the browser tween from the measured full-burst pose back to rest —
+    // a 0.45s phantom reassemble a moment after load.
+    renderPieces(false);
+    card.style.transform = savedCardTransform;
+    void pcs[0].offsetHeight; // flush the rest pose before transitions come back
+    pcs.forEach((el, i) => { el.style.transition = savedTransition[i]; });
+  }
+
   function renderPieces(stagger) {
     // will-change only while deconstructed: a permanent hint would layer-promote
     // the pieces and break click/hover hit-testing on the resting 3D card.
     const active = explodeF > 0.001;
     pcs.forEach((el, i) => {
       const b = burst[i] || [0, 0, 140];
+      const s = fit[i] || { x: 1, y: 1 };
+      const x = b[0] * s.x * explodeF;
+      const y = b[1] * s.y * explodeF;
+      const z = b[2] * Math.min(s.x, s.y) * explodeF;
       el.style.willChange = active ? 'transform' : 'auto';
       el.style.transitionDelay = stagger ? (i * 0.04) + 's' : '0s';
-      el.style.transform = `translate3d(${b[0]*explodeF}px, ${b[1]*explodeF}px, ${b[2]*explodeF}px)`;
+      el.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
     });
   }
   function setExplode(f, stagger) {
     explodeF = Math.max(0, Math.min(1, f));
     if (flipped && explodeF > 0.02) { flipped = false; rotY = base() + restY; rotX = restX; apply(); }
     renderPieces(stagger);
+    // Drives the wire glow — see .card.exploded in card.css.
+    card.classList.toggle('exploded', explodeF > 0.02);
     if (stagger) setTimeout(() => pcs.forEach((el) => { el.style.transitionDelay = '0s'; }), 600);
   }
-  document.getElementById('deconstruct')?.addEventListener('click', () => setExplode(1, true));
-  document.getElementById('reassemble')?.addEventListener('click', () => setExplode(0, true));
+
   wrap.addEventListener('wheel', (e) => {
     e.preventDefault();
     setExplode(explodeF + e.deltaY * 0.0016, false);
@@ -148,14 +285,17 @@ export function initCard() {
   const face = card.querySelector('.face.front');
   const wirePaths = card.querySelectorAll('.face.front .wires path');
   const atEl = card.querySelector('.ch.u-email .at');
-  const liEl = card.querySelector('.socials .soc'); // first social = LinkedIn
+  const socEls = card.querySelectorAll('.socials .soc');
+  const liEl = socEls[0];                     // first social = LinkedIn
+  const bookEl = socEls[socEls.length - 1];   // last social = Fit Call / book a call
+  const idEl = card.querySelector('.idblock');
   function offsetIn(el, ancestor) {
     let x = 0, y = 0, n = el;
     while (n && n !== ancestor) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
     return { x, y };
   }
   function positionWires() {
-    if (!face || wirePaths.length < 2 || !atEl || !liEl) return;
+    if (!face || wirePaths.length < 2 || !atEl || !liEl || !bookEl || !idEl) return;
     const W = face.offsetWidth, H = face.offsetHeight;
     if (!W || !H) return;
     const gap = 30; // px the trace stops short of its target
@@ -163,17 +303,69 @@ export function initCard() {
     const vy = (px) => +(px / H * 500).toFixed(1);
     const at = offsetIn(atEl, face);
     const li = offsetIn(liEl, face);
+    const id = offsetIn(idEl, face);
     const atX = vx(at.x + atEl.offsetWidth / 2);
     const liX = vx(li.x + liEl.offsetWidth / 2);
+    // Both traces leave the id block. These used to be hardcoded viewBox
+    // coordinates, which only lined up on the landscape card.
+    const top = id.y + idEl.offsetHeight + 22;
+    const startY = vy(top);
+
+    if (H > W) {
+      // PORTRAIT (phone): the stacked layout leaves a wide empty band between the
+      // identity and the contact rows. Per Mario's mockup, the traces become a
+      // symmetric pair of descending brackets that fill that band: each drops
+      // from below the title near an outer edge, steps INWARD, and stops short of
+      // the contact block. On this face they read as composition rather than as
+      // literal pointers — the landscape card below keeps the pointing version.
+      const bandBottom = Math.min(at.y, li.y);
+      const band = bandBottom - top;
+      const fx = (f) => vx(W * f);
+      // Left: the short bracket from the mockup — outer start, inward step,
+      // stopping inside the band.
+      const L_OUT = 0.15, L_IN = 0.235, R_OUT = 0.815;
+      const elbowY = vy(top + band * 0.53);
+      wirePaths[0].setAttribute('d',
+        `M${fx(L_OUT)} ${startY} L${fx(L_OUT)} ${elbowY} L${fx(L_IN)} ${elbowY} L${fx(L_IN)} ${vy(top + band * 0.78)}`);
+
+      // Right: exactly two segments, per the mockup — a long vertical down the
+      // right side, then a short horizontal tick in toward the LAST connect icon
+      // ("book a call", the primary action). The tick is level with the icon and
+      // stops short of it, so it points rather than connects.
+      const book = offsetIn(bookEl, face);
+      const bookMidY = vy(book.y + bookEl.offsetHeight / 2);
+      const tickEnd = vx(book.x + bookEl.offsetWidth + gap);
+      wirePaths[1].setAttribute('d',
+        `M${fx(R_OUT)} ${startY} L${fx(R_OUT)} ${bookMidY} L${tickEnd} ${bookMidY}`);
+      return;
+    }
+
+    // LANDSCAPE (desktop): keep the original composition, anchored to the id
+    // block's real box so it holds at any card width.
+    const leftX = vx(id.x + idEl.offsetWidth * 0.62);
+    const rightX = vx(id.x + idEl.offsetWidth + 18);
+    const midY = vy((id.y + idEl.offsetHeight + at.y) / 2);
     // left trace: down from the id block, across, then onto the '@'
-    wirePaths[0].setAttribute('d', `M330 168 L330 330 L${atX} 330 L${atX} ${vy(at.y - gap)}`);
+    wirePaths[0].setAttribute('d', `M${leftX} ${startY} L${leftX} ${midY} L${atX} ${midY} L${atX} ${vy(at.y - gap)}`);
     // right trace: across from the id block, then down onto the LinkedIn icon
-    wirePaths[1].setAttribute('d', `M405 168 L${liX} 168 L${liX} ${vy(li.y - gap)}`);
+    wirePaths[1].setAttribute('d', `M${rightX} ${startY} L${liX} ${startY} L${liX} ${vy(li.y - gap)}`);
   }
   positionWires();
-  window.addEventListener('resize', positionWires);
   // Fonts change text metrics → the '@' shifts; reposition once they're ready.
   if (document.fonts?.ready) document.fonts.ready.then(positionWires);
+
+  // measureFit() forces synchronous layout, so keep it off the first-paint path
+  // (perf budget: LCP < 2.5s). It's only needed before the first deconstruct.
+  const idleFit = window.requestIdleCallback || ((cb) => setTimeout(cb, 200));
+  idleFit(() => measureFit());
+  if (document.fonts?.ready) document.fonts.ready.then(measureFit);
+
+  let resizeT;
+  window.addEventListener('resize', () => {
+    positionWires();
+    clearTimeout(resizeT);
+    resizeT = setTimeout(measureFit, 150); // debounced: it's a layout-thrash pass
+  });
 
   // ---- save contact (toast only) ----
   // The href is a real hosted /mario-seijo.vcf in the HTML, so Save works with

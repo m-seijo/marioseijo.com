@@ -166,39 +166,6 @@ a { color: inherit; }
 .sitefooter a { color: var(--muted); text-decoration: none; }
 .sitefooter a:hover { color: var(--accent-ink); }
 .sitefooter a:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
-.cookie-settings {
-  appearance: none; border: 0; padding: 0; background: transparent; color: var(--muted);
-  font: inherit; cursor: pointer;
-}
-.cookie-settings:hover { color: var(--accent-ink); }
-.cookie-settings:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
-
-/* --- analytics consent ---------------------------------------------------- */
-.consent {
-  position: fixed; z-index: 50; left: 50%; bottom: 20px; width: min(680px, calc(100vw - 32px));
-  transform: translateX(-50%);
-  display: flex; align-items: center; gap: 24px;
-  padding: 18px 20px; border: 1px solid var(--hair); border-radius: 18px;
-  background: var(--surface); color: var(--ink);
-  box-shadow: 0 22px 70px -24px var(--depth);
-}
-.consent[hidden] { display: none; }
-.consent__copy { flex: 1 1 auto; }
-.consent__copy strong { display: block; font-family: var(--display); font-size: 17px; margin-bottom: 4px; }
-.consent__copy p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
-.consent__copy a { color: var(--accent-ink); text-underline-offset: 2px; }
-.consent__actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
-.consent__button {
-  appearance: none; border-radius: 999px; padding: 10px 14px; font: inherit;
-  font-size: 13px; font-weight: 600; cursor: pointer;
-}
-.consent__button--quiet { border: 1px solid var(--hair); background: transparent; color: var(--muted); }
-.consent__button--accept { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
-.consent__button:hover { filter: brightness(1.06); }
-.consent__button:focus-visible, .consent__copy a:focus-visible {
-  outline: 2.5px solid var(--accent); outline-offset: 3px;
-}
-
 /* --- toast ---------------------------------------------------------------- */
 .toast {
   position: fixed; left: 50%; bottom: 26px; transform: translate(-50%,20px); z-index: 20;
@@ -212,6 +179,11 @@ a { color: inherit; }
 /* --- mobile: the fixed chrome joins the flow so it can't cover content ----- */
 @media (max-width: 640px) {
   .wordmark { position: static; justify-content: center; margin: 14px auto 0; }
-  .consent { align-items: stretch; flex-direction: column; gap: 14px; bottom: 12px; }
-  .consent__actions { justify-content: flex-end; }
+  /* The handoff is a sibling of <main>, so it can't be moved under the card by
+     nesting — reorder the body column instead: logo, hero+card+controls,
+     handoff, footer. (.toast stays position:fixed, so order doesn't apply.) */
+  .wordmark   { order: 1; }
+  main        { order: 2; }
+  .handoff    { order: 3; }
+  .sitefooter { order: 4; }
 }
